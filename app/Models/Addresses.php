@@ -13,6 +13,16 @@ class Addresses extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(Addresses::class, "user_id", "id");
+        return $this->belongsTo(User::class, "user_id", "id");
+    }
+
+    public function order()
+    {
+        return $this->hasMany(Orders::class, "address_id", "id");
+    }
+
+    public function InfoUser()
+    {
+        return $this->hasMany(Addresses::class, "address_id", "id");
     }
 }

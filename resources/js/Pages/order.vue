@@ -2,51 +2,48 @@
     <MainLayout>
         <div
             id="OrdersPage"
-            class="mt-4 max-w-[1200px] mx-auto px-2 min-h-[50vh]"
+            class="mt-4 max-w-[900px] mx-auto px-2 min-h-[50vh]"
         >
-            <div class="bg-white w-full p-6 min-h-[150px]">
-                <div class="flex items-center text-xl">
-                    <Icon name="carbon:delivery" color="#5FCB04" size="35" />
-                    <span class="pl-4">Orders :</span>
+            <div v-if="product.length == 0" class="pt-10">
+                <img
+                    src="/images/icons/cart-empty.png"
+                    alt=""
+                    width="250"
+                    class="mx-auto"
+                />
+                <div class="text-xl text-center mt-4">No Order</div>
+            </div>
+            <div v-else>
+                <div class="font-normal text-[22px] mb-4">
+                    <p>My Order</p>
                 </div>
-                <div
-                    v-if="orders"
-                    v-for="order in orders"
-                    class="text-sm pl-[50px]"
-                >
-                    <div class="border-b py-1">
-                        <div class="pt-2"></div>
-                        <div v-for="item in order.items" :key="item.id">
-                            <Link>
-                                <img width="40" :src="item.url" />
-                                <p class="mb-2">{{ item.title }}</p>
-                            </Link>
-                        </div>
-                        <div class="pt-2 pb-5">
-                            Delivery Address: {{ order.order.name }},
-                            {{ order.order.address }},
-                            {{ order.order.zipcode }}, {{ order.order.city }},
-                            {{ order.order.country }}
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    v-if="orders && orders.length === 0"
-                    class="flex items-center justify-center"
-                >
-                    You have no order history
+                <div v-for="p in product" :key="p.id">
+                    <OrderItem :product="p" />
                 </div>
             </div>
         </div>
-        <!-- <p>{{ orders }}</p> -->
     </MainLayout>
 </template>
 
 <script setup>
 import MainLayout from "@/Layouts/MainLayout.vue";
-import { Link } from "@inertiajs/vue3";
+import OrderItem from "@/Components/OrderItem.vue";
+import { ref, onMounted } from "vue";
+import axios from "axios";
 import { useUserStore } from "@/stores/user";
 const userStore = useUserStore();
-const props = defineProps({ orders: Object });
+
+const product = ref([]);
+onMounted(async () => {
+    try {
+        const response = await axios.get("/api/order", {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+        });
+        product.value = response.data;
+    } catch (error) {
+        console.error("gagal", error);
+    }
+});
 </script>

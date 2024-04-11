@@ -2,19 +2,21 @@
     <MainLayout>
         <div id="shoppingCart" class="mt-4 max-w-[1200px] mx-auto px-2">
             <div
-                v-if="!userStore.cart.length"
+                v-if="getTotalCart == 0"
                 class="h-[500px] flex items-center justify-center"
             >
                 <div class="pt-20">
-                    <img
-                        class="mx-auto"
-                        width="250"
-                        src="/images/icons/cart-empty.png"
-                    />
+                    <Link :href="route('home')">
+                        <img
+                            class="mx-auto"
+                            width="250"
+                            src="/images/icons/cart-empty.png"
+                        />
+                    </Link>
 
                     <div class="text-xl text-center mt-4">No items yet?</div>
 
-                    <div v-if="!user" class="flex text-center">
+                    <div v-if="user == null" class="flex text-center">
                         <Link
                             :href="route('masuk')"
                             class="bg-[#FD374F] w-full text-white text-[21px] font-semibold p-1.5 rounded-full mt-4"
@@ -28,22 +30,22 @@
                 <div class="md:w-[65%]">
                     <div class="bg-white rounded-lg p-4">
                         <div class="text-2xl font-bold mb-2">
-                            Shopping Cart {{ userStore.cart.length }}
+                            Shopping cart {{ getTotalCart }}
                         </div>
                     </div>
 
                     <div class="bg-[#FEEEEF] rounded-lg p-4 mt-4">
                         <div class="text-red-500 font-bold">
-                            Welcome Deal applicable on 1 item only
+                            Welcome Deal applicable {{ checkout }} 1 item only
                         </div>
                     </div>
 
                     <div id="Items" class="bg-white rounded-lg p-4 mt-4">
-                        <div v-for="product in userStore.cart">
+                        <div v-for="product in cart" :key="cart.id">
                             <CartItem
                                 :product="product"
-                                :selectedArray="selectedArray"
-                                @selectedRadio="selectedRadioFunc"
+                                :checked="checked"
+                                :data="data"
                             />
                         </div>
                     </div>
@@ -56,9 +58,8 @@
                             <div class="font-semibold">Total</div>
                             <div class="text-2xl font-semibold">
                                 Rp.
-                                <span class="font-extrabold">{{
-                                    totalPriceComputed
-                                }}</span>
+
+                                <span class="font-extrabold">{{ total }}</span>
                             </div>
                         </div>
                         <button
@@ -105,14 +106,58 @@ import { Icon } from "@iconify/vue";
 import { Link } from "@inertiajs/vue3";
 import { ref, computed, onMounted } from "vue";
 import { router } from "@inertiajs/vue3";
+import axios from "axios";
 
 const userStore = useUserStore();
-const props = defineProps({ user: Object });
+const user = ref(null);
+const cart = ref([]);
 
-let isSelected = ref(false);
+const getUser = async () => {
+    try {
+        const response = await axios.get("/api/profile", {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+        });
+        user.value = response.data;
+    } catch (error) {}
+};
+
+const viewCart = async () => {
+    try {
+        const response = await axios.get("/api/user/cart", {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+        });
+        cart.value = response.data.data;
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const getTotalCart = computed(() => {
+    if (cart.value == null) {
+        return 0;
+    } else {
+        return Object.keys(cart.value).length;
+    }
+});
+
+const checked = ref([]);
+const total = computed(() => {
+    return checked.value
+        .reduce((sum, value) => sum + value, 0)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+});
+
+const data = ref([]);
 
 onMounted(() => {
     setTimeout(() => (userStore.isLoading = false), 200);
+    viewCart();
+    getUser();
 });
 
 const cards = ref([
@@ -130,24 +175,13 @@ const totalPriceComputed = computed(() => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 });
 
-const selectedRadioFunc = (e) => {
-    if (!selectedArray.value.length) {
-        selectedArray.value.push(e);
-        return;
-    }
-
-    selectedArray.value.forEach((item, index) => {
-        if (e.id != item.id) {
-            selectedArray.value.push(e);
-        } else {
-            selectedArray.value.splice(index, 1);
-        }
-    });
-};
-
 const goToCheckout = () => {
-    const productsToMove = [...userStore.cart];
-    userStore.checkout.push(...productsToMove);
+    try {
+        userStore.checkout.length = 0;
+    } catch (error) {
+    } finally {
+        userStore.checkout.push(...data.value.splice(0, data.value.length));
+    }
     router.visit("/checkout");
 };
 </script>

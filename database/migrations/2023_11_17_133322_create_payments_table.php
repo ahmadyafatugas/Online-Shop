@@ -12,10 +12,12 @@ return new class extends Migration {
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger("user_id");
+            $table->unsignedInteger("order_id");
             $table->integer("amount");
+            $table->string("status");
             $table->timestamps();
-            $table->foreign("user_id")->references("id")->on("users");
+
+            $table->foreign("order_id")->references("id")->on("orders");
         });
     }
 

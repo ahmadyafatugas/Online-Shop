@@ -1,6 +1,17 @@
 <template>
     <div class="flex justify-start my-2">
-        <img class="rounded-md md:w-[150px] w-[90px]" :src="product.url" />
+        <div class="my-auto">
+            <input
+                type="checkbox"
+                :checked="checked.includes(product.price)"
+                @change="onCheckboxChange"
+                class="mr-5 cursor-pointer rounded-full"
+            />
+        </div>
+        <img
+            class="rounded-md md:w-[150px] w-[50px] h-full"
+            :src="'/storage/' + product.url"
+        />
 
         <div class="overflow-hidden pl-2 w-full">
             <div class="flex items-center justify-between w-full">
@@ -44,35 +55,46 @@
 </template>
 
 <script setup>
-import { ref, defineProps, toRefs, defineEmits, watch, computed } from "vue";
+import { ref, defineProps, toRefs, watch, computed } from "vue";
 import { useUserStore } from "@/stores/user";
 import { Icon } from "@iconify/vue";
+import axios from "axios";
+import { router } from "@inertiajs/vue3";
 const userStore = useUserStore();
 
-const props = defineProps(["product", "selectedArray"]);
-const { product, selectedArray } = toRefs(props);
+const { product, checked, data } = defineProps(["product", "checked", "data"]);
 
-const emit = defineEmits(["selectedRadio"]);
-
-let isHover = ref(false);
-let isSelected = ref(false);
-
-const removeFromCart = () => {
-    userStore.cart.forEach((prod, index) => {
-        if (prod.id === product.value.id) {
-            userStore.cart.splice(index, 1);
-        }
-    });
+const onCheckboxChange = () => {
+    const isChecked = checked.includes(product.price);
+    if (isChecked) {
+        checked.splice(checked.indexOf(product.price), 1);
+        data.splice(data.indexOf(product), 1);
+    } else {
+        checked.push(product.price);
+        data.push(product);
+    }
 };
 
-watch(
-    () => isSelected.value,
-    (val) => {
-        emit("selectedRadio", { id: product.value.id, val: val });
+const getFileName = (fullUrl) => {
+    const parts = fullUrl.split("/");
+    return parts[parts.length - 1];
+};
+
+const removeFromCart = async () => {
+    try {
+        await axios.delete(`/api/user/cart/${product.id}`, {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+        });
+        router.visit("/shoppingcart");
+        console.log("berhasil");
+    } catch (error) {
+        console.error(error, "gagal");
     }
-);
+};
 
 const priceComputed = computed(() => {
-    return props.product.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return product.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 });
 </script>

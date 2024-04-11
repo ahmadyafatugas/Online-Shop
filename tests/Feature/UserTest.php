@@ -67,7 +67,7 @@ class UserTest extends TestCase
 
     public function testLogin()
     {
-        $this->seed([UserSeed::class]);
+        // $this->seed([UserSeed::class]);
         $this->post("/api/login", [
             'email' => 'test@gmail.com',
             'password' => 'test'
@@ -75,7 +75,8 @@ class UserTest extends TestCase
             ->assertJson([
                 'data' => [
                     'email' => 'test@gmail.com',
-                    'name' => 'test'
+                    'name' => 'test',
+                    'role' => 'admin',
                 ]
             ]);
 
@@ -83,7 +84,7 @@ class UserTest extends TestCase
 
     public function testLoginFailed()
     {
-        $this->seed([UserSeed::class]);
+        // $this->seed([UserSeed::class]);
         $this->post("/api/login", [
             'email' => 'test@gmail.com',
             'password' => '1111'
@@ -100,8 +101,8 @@ class UserTest extends TestCase
 
     public function testlogout()
     {
-        $this->seed([UserSeed::class]);
-        $this->post("/api/logout")
+        // $this->seed([UserSeed::class]);
+        $this->post("/logout")
             ->assertStatus(200)
             ->assertJson([
                 'message' => 'Success Logout'

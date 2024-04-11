@@ -16,7 +16,13 @@ return new class extends Migration {
             $table->text("description");
             $table->text("url");
             $table->integer("price");
+            $table->integer("stock");
+            $table->unsignedBigInteger("category_id");
+            $table->unsignedBigInteger("seller_id");
             $table->timestampsTz(6);
+
+            $table->foreign("category_id")->references("id")->on("categories");
+            $table->foreign("seller_id")->references("id")->on("sellers");
         });
     }
 

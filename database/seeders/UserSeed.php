@@ -3,8 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Admin;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class UserSeed extends Seeder
 {
@@ -18,5 +20,8 @@ class UserSeed extends Seeder
             'email' => 'test@gmail.com',
             'password' => 'test'
         ]);
+        // Admin::create([
+        //     'user_id' => $user->id
+        // ]);
     }
 }

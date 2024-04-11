@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use App\Models\Orders;
 use App\Models\payment;
+use App\Models\Category;
 use App\Models\Products;
 use Stripe\StripeClient;
 use App\Models\Addresses;
@@ -19,21 +20,47 @@ use App\Http\Resources\ProductResource;
 use App\Http\Requests\AddressUpdateRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class ItemController extends Controller
+class ProductController extends Controller
 {
     public function home()
     {
-        $product = Products::all();
-        return Inertia::render("Home", [
-            'product' => $product,
-        ]);
+        return Inertia::render("Home");
     }
 
-    public function index(int $id)
+    public function singleProduct($id)
     {
-        $user = Auth::user();
-        return Inertia::render("Item", ['product' => Products::Find($id), 'user' => $user]);
+        $product = Products::where('id', $id)->first();
+        $image = asset('/storage/' . $product->url);
+        return Inertia::render("Item", ['id' => $product, 'image' => $image,]);
     }
+
+    public function productByCategory($name)
+    {
+        $category = Category::where("name", $name)->first();
+        $product = Products::where("category_id", $category->id)->get();
+        return Inertia::render("CategoryProduct", ['product' => $product, 'id' => $category->name]);
+    }
+
+    public function singleProductId($id)
+    {
+        $product = Products::where('id', $id)->first();
+        return (new ProductResource($product))->response()->setStatusCode(200);
+    }
+
+    public function product()
+    {
+        $product = Products::all();
+        return (ProductResource::collection($product))->response()->setStatusCode(200);
+    }
+
+    public function productCategory($name)
+    {
+        $category = Category::where('name', $name)->first();
+        $product = Products::where('category_id', $category->id)->get();
+        return (ProductResource::collection($product))->response()->setStatusCode(200);
+    }
+
+    // ========================== //
 
     public function shoppingCart()
     {
@@ -63,44 +90,6 @@ class ItemController extends Controller
         $validate->save();
         return response()->json($validate);
     }
-
-    public function address()
-    {
-        $user = Auth::id();
-        $address = Addresses::where("user_id", $user)->first();
-        return Inertia::render("address", ["address" => $address]);
-    }
-
-    public function addressStore(AddressRequest $request): JsonResponse
-    {
-        $userId = Auth::id();
-        $data = $request->validated();
-        $address = new Addresses($data);
-        $address->user_id = $userId;
-        $address->save();
-        return (new AddressResource($address))->response()->setStatusCode(201);
-    }
-
-    public function updateAddress(int $id, AddressUpdateRequest $request): AddressResource
-    {
-        $user = Auth::id();
-        $address = Addresses::where("id", $id)->where("user_id", $user)->first();
-        if (!$address) {
-            throw new HttpResponseException(response()->json([
-                'errors' => [
-                    "message" => [
-                        "not found"
-                    ]
-                ]
-            ])->setStatusCode(404));
-        }
-        $data = $request->validated();
-        $address->fill($data);
-        $address->save();
-
-        return new AddressResource($address);
-    }
-
 
     public function orderView()
     {

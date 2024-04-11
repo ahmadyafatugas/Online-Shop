@@ -1,9 +1,9 @@
 <template>
     <div class="bg-[#FFFFFF] h-[100vh] m-0 p-0 w-full">
         <div id="Header" class="flex justify-center mt-[20px] min-w-[960px]">
-            <a href="">
+            <Link :href="route('home')">
                 <img src="/images/icons/Toko.png" width="135" />
-            </a>
+            </Link>
         </div>
         <div class="relative min-w-[960px] mx-auto">
             <div class="my-[20px] h-[70%] pt-[50px] flex justify-center">
@@ -42,6 +42,14 @@
                                             required
                                         />
                                     </div>
+                                    <div
+                                        class="text-[12px] text-bold py-1 text-red-500"
+                                        v-if="errors"
+                                        v-for="err in errors.name"
+                                        :key="err"
+                                    >
+                                        {{ err }}
+                                    </div>
                                     <label
                                         class="text-[12px] text-bold leading-4 mb-[4px] text-gray-500"
                                         >Email</label
@@ -53,6 +61,14 @@
                                             class="flex items-center h-[40px] rounded-lg bg-[#FFFFFF] overflow-hidden border-[1px] border-solid w-full mt-1 outline-[#FF4646] p-3"
                                             required
                                         />
+                                    </div>
+                                    <div
+                                        class="text-[12px] text-bold py-1 text-red-500"
+                                        v-if="errors"
+                                        v-for="err in errors.email"
+                                        :key="err"
+                                    >
+                                        {{ err }}
                                     </div>
                                     <label
                                         class="text-[12px] text-bold leading-4 mb-[4px] text-gray-500"
@@ -66,12 +82,25 @@
                                             required
                                         />
                                     </div>
+                                    <div
+                                        class="text-[12px] text-bold py-1 text-red-500"
+                                        v-if="errors"
+                                        v-for="err in errors.password"
+                                        :key="err"
+                                    >
+                                        {{ err }}
+                                    </div>
                                     <button
                                         class="bg-[#FF4646] border-none rounded-lg text-[#FFFFFF] my-[16px] h-[40px] w-full hover:bg-[#D80000]"
                                         type="submit"
                                         :disabled="form.processing"
                                     >
-                                        Daftar
+                                        <Icon
+                                            v-if="isLoading"
+                                            icon="eos-icons:loading"
+                                            class="mx-auto"
+                                        />
+                                        <div v-else>Daftar</div>
                                     </button>
                                 </div>
                             </form>
@@ -93,12 +122,14 @@
 
 <script setup>
 import { Link, useForm } from "@inertiajs/vue3";
-import { reactive } from "vue";
+import { reactive, ref, onMounted } from "vue";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import { router } from "@inertiajs/vue3";
-import Loading from "@/Components/Loading.vue";
+import { Icon } from "@iconify/vue";
 const useStore = useUserStore();
+let isLoading = ref(false);
+const errors = ref(null);
 
 const form = reactive({
     name: "",
@@ -106,17 +137,22 @@ const form = reactive({
     password: "",
 });
 
+onMounted(() => {
+    isLoading.value = false;
+});
+
 const submit = async () => {
     try {
+        isLoading.value = true;
         useStore.isLoading = true;
-        const response = await axios.post("/daftar", form);
-        console.log("Registration successful:", response.data);
+        const response = await axios.post("/api/auth/register", form);
+        localStorage.setItem("token", response.data.token);
         router.visit("/masuk");
     } catch (error) {
-        // Handle errors if the registration fails
+        isLoading.value = false;
         console.error("Registration failed:", error);
+        errors.value = error.response.data.errors;
     } finally {
-        // Reset loading state to false, whether successful or not
         useStore.isLoading = false;
     }
 };

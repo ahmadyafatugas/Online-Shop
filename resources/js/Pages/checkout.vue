@@ -20,44 +20,47 @@
                                 Update Address
                             </Link>
 
-                            <div class="pt-2 border-t">
+                            <div
+                                class="pt-2 border-t"
+                                v-for="a in address"
+                                :key="a.id"
+                            >
                                 <div class="pb-1">Delivery Address</div>
                                 <ul class="text-xs">
                                     <li class="flex items-center gap-2">
                                         <div>Contact name:</div>
                                         <div class="font-bold">
-                                            {{ address.name }}
+                                            {{ a.name }}
                                         </div>
                                     </li>
                                     <li class="flex items-center gap-2">
                                         <div>Address:</div>
                                         <div class="font-bold">
-                                            {{ address.address }}
+                                            {{ a.address }}
                                         </div>
                                     </li>
                                     <li class="flex items-center gap-2">
                                         <div>Zip Code:</div>
                                         <div class="font-bold">
-                                            {{ address.zipcode }}
+                                            {{ a.zipcode }}
                                         </div>
                                     </li>
                                     <li class="flex items-center gap-2">
                                         <div>City:</div>
                                         <div class="font-bold">
-                                            {{ address.city }}
+                                            {{ a.city }}
                                         </div>
                                     </li>
                                     <li class="flex items-center gap-2">
                                         <div>Country:</div>
                                         <div class="font-bold">
-                                            {{ address.country }}
+                                            {{ a.country }}
                                         </div>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                         <Link
-                            :href="route('address')"
                             v-else
                             class="flex items-center text-blue-500 hover:text-red-400"
                         >
@@ -68,7 +71,7 @@
                     <div id="Items" class="bg-white rounded-lg p-4 mt-4">
                         <div
                             v-for="product in userStore.checkout"
-                            :key="product"
+                            :key="product.id"
                         >
                             <CheckoutItem :product="product" />
                         </div>
@@ -89,7 +92,6 @@
                         <div class="flex items-center justify-between my-4">
                             <div class="font-semibold">Total</div>
                             <div class="text-2xl font-semibold">
-                                Rp.
                                 <span class="font-extrabold">{{
                                     totalPriceComputed
                                 }}</span>
@@ -150,41 +152,52 @@ import MainLayout from "@/Layouts/MainLayout.vue";
 import Loading from "@/Components/Loading.vue";
 import CheckoutItem from "@/Components/CheckoutItem.vue";
 import { loadStripe } from "@stripe/stripe-js";
-import { ref, onMounted, onBeforeMount, toRefs, computed } from "vue";
+import { ref, onMounted, onBeforeMount, toRefs, computed, watch } from "vue";
 import { Link, router } from "@inertiajs/vue3";
 import { Icon } from "@iconify/vue";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
 const userStore = useUserStore();
-const props = defineProps({ user: Object, address: Object, intent: Object });
-const { intent } = toRefs(props);
-
+const { secretKey } = defineProps(["secretKey"]);
+const address = ref([]);
 let stripe = null;
 let elements = null;
 let card = null;
 let form = null;
 let total = ref(0);
 let clientSecret = null;
-let currentAddress = ref(null);
 let isProcessing = ref(false);
 let error = ref(false);
+let storedNumber = ref(null);
+
+const getAddress = async () => {
+    try {
+        const response = await axios.get("/api/address", {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+        });
+        address.value = response.data;
+    } catch (error) {
+        console.error(error);
+        router.visit("/address");
+    }
+};
 
 const totalPriceComputed = computed(() => {
     let price = 0;
     userStore.checkout.forEach((prod) => {
         price += prod.price;
     });
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return new Intl.NumberFormat("id-ID").format(price);
 });
 
 onBeforeMount(async () => {
     if (userStore.checkout.length < 1) {
         return router.visit("/shoppingcart");
     }
-
-    if (props.user) {
-        currentAddress.address = props.address.id;
-        setTimeout(() => (userStore.isLoading = false), 200);
+    if (localStorage.getItem("token") == null) {
+        return router.visit("/masuk");
     }
 });
 
@@ -196,14 +209,27 @@ onMounted(async () => {
             .toString()
             .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     });
+
+    getAddress();
     stripeInit();
 });
 
 const stripeInit = async () => {
-    stripe = await loadStripe(
-        "pk_test_51OD3w5LWEb7cCr31Gk7GIao3Aqi8qb9QFGMgUy8BZQzyIr0kVzPDhc95rGFPcwNJ6MFRgob839MEB7173I1ya4Dp00lNSBpyY2"
+    stripe = await loadStripe(secretKey);
+    let num = String(totalPriceComputed.value).split(".").join("");
+    storedNumber.value = Number(num + "00");
+    let res = await axios.post(
+        "/api/payment",
+        {
+            total: storedNumber.value,
+        },
+        {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+        }
     );
-    clientSecret = intent.value.client_secret;
+    clientSecret = res.data.client_secret;
     elements = stripe.elements();
     var style = {
         base: {
@@ -220,7 +246,6 @@ const stripeInit = async () => {
         style: style,
     });
 
-    // Stripe injects an iframe into the DOM
     card.mount("#card-element");
     card.on("change", function (event) {
         document.querySelector("button").disabled = event.empty;
@@ -231,7 +256,11 @@ const stripeInit = async () => {
     form = document.getElementById("payment-form");
     form.addEventListener("submit", function (event) {
         event.preventDefault();
-        payWithCard(stripe, card, intent.value.client_secret);
+        if (address == []) {
+            error.value = true;
+        } else {
+            payWithCard(stripe, card, clientSecret);
+        }
     });
 
     isProcessing.value = false;
@@ -239,11 +268,12 @@ const stripeInit = async () => {
 };
 
 const payWithCard = (stripe, card, clientSecret) => {
-    if (!props.address) {
+    if (!address) {
         error.value = true;
         return;
     }
     userStore.isLoading = true;
+    isProcessing.value = true;
     stripe
         .confirmCardPayment(clientSecret, {
             payment_method: {
@@ -252,13 +282,11 @@ const payWithCard = (stripe, card, clientSecret) => {
         })
         .then(function (result) {
             if (result.error) {
-                // Show error to your customer
                 showError(result.error.message);
+                console.error("gagal");
             } else {
-                // The payment succeeded!
                 createOrder();
                 userStore.isLoading = false;
-                userStore.cart = [];
                 userStore.checkout = [];
                 console.log("berhasil");
                 router.visit("/success");
@@ -267,13 +295,16 @@ const payWithCard = (stripe, card, clientSecret) => {
 };
 
 const createOrder = async () => {
-    await axios.post("/order", {
-        name: props.address.name,
-        address: props.address.address,
-        zipcode: props.address.zipcode,
-        city: props.address.city,
-        country: props.address.country,
-        products: userStore.checkout,
-    });
+    await axios.post(
+        "/api/order",
+        {
+            products: userStore.checkout,
+        },
+        {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+        }
+    );
 };
 </script>

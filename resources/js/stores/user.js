@@ -5,6 +5,7 @@ export const useUserStore = defineStore("user", {
         isLoading: false,
         cart: [],
         checkout: [],
+        image: [],
     }),
     persist: true,
 });

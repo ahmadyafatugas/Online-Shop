@@ -9,4 +9,9 @@ class payment extends Model
 {
     use HasFactory;
     protected $guarded = ["id"];
+
+    public function order()
+    {
+        return $this->belongsTo(Orders::class, "order_id", "id");
+    }
 }

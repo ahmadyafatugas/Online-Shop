@@ -54,7 +54,7 @@
                         >
                             <input
                                 class="w-full placeholder-gray-400 text-sm pl-3 focus:outline-none"
-                                placeholder="Cari Barang"
+                                placeholder="Search Product"
                                 type="text"
                                 v-model="searchItem"
                                 @click="activateSearch"
@@ -87,13 +87,13 @@
                             >
                                 <Link
                                     class="flex items-center justify-between w-full cursor-pointer hover:bg-gray-100 rounded-md"
-                                    :href="route('item', { id: item.id })"
+                                    :href="route('product', { id: item.id })"
                                 >
                                     <div class="flex items-center">
                                         <img
                                             class="rounded-md"
                                             width="40"
-                                            :src="item.url"
+                                            :src="'/storage/' + item.url"
                                         />
                                         <div class="truncate ml-2">
                                             {{ item.title }}
@@ -118,7 +118,7 @@
                                 v-if="user"
                                 class="absolute flex items-center justify-center -right-[3px] -top-1 bg-[#FF4646] h-[17px] min-w-[17px] text-xs text-white px-0.5 rounded-full"
                             >
-                                {{ useStore.cart.length }}
+                                {{ getTotalCart }}
                             </span>
                             <span
                                 v-else
@@ -137,44 +137,60 @@
                     </Link>
                 </div>
                 <div class="border-r border-1 h-9" />
-                <li
-                    class="relative flex items-center h-9 cursor-pointer rounded"
+                <ul
+                    class="relative bg-white flex items-center h-9 cursor-pointer rounded"
                     v-if="user"
-                    @mouseenter="isAccountMenu = true"
-                    @mouseleave="isAccountMenu = false"
-                    :class="isAccountMenu ? 'shadow-md' : ''"
+                    @mouseenter="acc = true"
+                    @mouseleave="acc = false"
+                    :class="acc ? 'shadow-md' : ''"
                 >
-                    <Icon icon="bx:user" height="32px" class="mx-2" />
-                    <div class="font-semibold mr-2">{{ Fname }}</div>
-                    <div
-                        v-if="isAccountMenu"
-                        class="absolute bg-gray w-[100px] text-[#333333] z-40 top-[37px] -left-[2px] border-x"
-                    >
-                        <div
-                            @click="logout"
-                            class="bg-white flex items-center justify-start"
-                        >
-                            <Icon
-                                icon="fe:logout"
-                                class="mb-1 mx-2 mt-2"
-                                height="18"
-                            />
-                            <p class="font-normal">Keluar</p>
+                    <div class="absolute">
+                        <div class="flex justify-start">
+                            <Icon icon="bx:user" height="32px" class="mx-2" />
+                            <div class="font-semibold mr-2 text-xl">
+                                {{ name }}
+                            </div>
                         </div>
-                        <Link :href="route('order')">
+                        <div
+                            v-if="acc"
+                            class="absolute bg-white w-[109px] ml-1 text-base"
+                        >
+                            <Link :href="route('order')">
+                                <div
+                                    class="bg-white pt-2 flex items-center justify-start"
+                                >
+                                    <Icon
+                                        icon="lets-icons:order-fill"
+                                        class="mb-[5px] mx-2"
+                                        height="20px"
+                                    />
+                                    <p class="font-normal ml-1">Order</p>
+                                </div>
+                            </Link>
+                            <Link :href="route('sellerRegister')">
+                                <div class="flex items-center justify-start">
+                                    <Icon
+                                        icon="iconoir:shop-window"
+                                        class="mb-1 mx-2 mt-2"
+                                        height="20px"
+                                    />
+                                    <p class="font-normal ml-1">Shop</p>
+                                </div>
+                            </Link>
                             <div
-                                class="bg-white pt-1 flex items-center justify-start"
+                                @click="logout"
+                                class="flex items-center justify-start"
                             >
                                 <Icon
-                                    icon="lets-icons:order-fill"
-                                    class="mb-1 mx-1"
-                                    height="20"
+                                    icon="fe:logout"
+                                    class="mb-1 mx-2 mt-2"
+                                    height="20px"
                                 />
-                                <p class="font-normal ml-1">Order</p>
+                                <p class="font-normal ml-1">Logout</p>
                             </div>
-                        </Link>
+                        </div>
                     </div>
-                </li>
+                </ul>
                 <div class="flex items-center justify-between h-9" v-if="!user">
                     <button
                         class="border border-solid bg-[#FFFFFF] mr-3 text-[#FF4646] h-[32px] px-[16px] rounded-lg font-extrabold"
@@ -216,6 +232,13 @@
                                 <div
                                     class="text-[0.928571rem] mt-[42px] text-left"
                                 >
+                                    <div
+                                        v-if="errors"
+                                        v-for="err in errors.message"
+                                        class="text-[14px] text-extrabold py-1 text-red-500"
+                                    >
+                                        {{ err }}
+                                    </div>
                                     <form
                                         @submit.prevent="submit"
                                         class="block mt-[0em]"
@@ -232,6 +255,14 @@
                                                     class="relative flex items-center h-[40px] rounded-lg bg-[#FFFFFF] overflow-hidden border-[1px] border-solid w-full mt-1 outline-[#FF4646] p-3"
                                                 />
                                             </div>
+                                            <div
+                                                class="text-[12px] text-bold py-1 text-red-500"
+                                                v-if="errors"
+                                                v-for="err in errors.email"
+                                                :key="err"
+                                            >
+                                                {{ err }}
+                                            </div>
                                             <label
                                                 class="text-[12px] text-bold leading-4 mb-[4px] text-gray-500"
                                                 >Password</label
@@ -243,27 +274,27 @@
                                                     class="relative flex items-center h-[40px] rounded-lg bg-[#FFFFFF] overflow-hidden border-[1px] border-solid w-full mt-1 outline-[#FF4646] p-3"
                                                 />
                                             </div>
+                                            <div
+                                                class="text-[12px] text-bold py-1 text-red-500"
+                                                v-if="errors"
+                                                v-for="err in errors.password"
+                                                :key="err"
+                                            >
+                                                {{ err }}
+                                            </div>
                                             <button
                                                 class="bg-[#FF4646] border-none rounded-lg text-[#FFFFFF] mt-5 h-[40px] w-full hover:bg-[#D80000]"
                                             >
-                                                Login
+                                                <Icon
+                                                    v-if="isLoading"
+                                                    icon="eos-icons:loading"
+                                                    class="mx-auto"
+                                                />
+                                                <div v-else>Login</div>
                                             </button>
                                         </div>
                                     </form>
                                     <div class="border-b border-1 my-[24px]" />
-                                    <a href="/signin">
-                                        <button
-                                            class="relative flex justify-center items-center bg-[#FFFFFF] border-[1px] border-solid font-bold rounded-lg px-[16px] w-full h-[40px] hover:bg-gray-100"
-                                        >
-                                            <img
-                                                src="/images/icons/google-logo.png"
-                                                class="w-full max-w-[15px]"
-                                            />
-                                            <div class="text-gray-500 left-2">
-                                                Google
-                                            </div>
-                                        </button>
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -279,15 +310,15 @@
             </div>
         </div>
     </div>
-    <Loading v-if="useStore.isLoading" />
+    <Loading v-if="useStore.isLoading === true" />
     <div class="lg:pt-[150px] md:pt-[130px] pt-[80px]" />
     <slot />
     <Footer />
 </template>
 
 <script setup>
-import { Link } from "@inertiajs/vue3";
-import { ref, onMounted, computed, reactive, watch } from "vue";
+import { Link, router } from "@inertiajs/vue3";
+import { ref, onMounted, computed, reactive, watch, onBeforeMount } from "vue";
 import { useDebounce } from "@vueuse/core";
 import { useUserStore } from "@/stores/user";
 import { Icon } from "@iconify/vue";
@@ -296,24 +327,47 @@ import Loading from "@/Components/Loading.vue";
 import Footer from "@/Layouts/Footer.vue";
 const useStore = useUserStore();
 const user = ref(null);
+const errors = ref(null);
 
-let isAccountMenu = ref(false);
+let acc = ref(false);
 let isCart = ref(false);
+let cart = ref({});
 let isSearching = ref(false);
 let searchItem = ref("");
 let items = ref(null);
+let isLoading = ref(false);
+
+const admin = async () => {
+    try {
+        const response = await axios("/api/admin", {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+        });
+        router.visit("/admin/user");
+    } catch (error) {
+        console.error(error);
+    }
+};
 
 onMounted(async () => {
+    useStore.isLoading = false;
     try {
-        const response = await axios.get("/user");
+        const response = await axios.get("/api/profile", {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+        });
         user.value = response.data;
     } catch (error) {
         console.error("gagal", error);
     }
+    getCart();
+    admin();
 });
 
-const Fname = computed(() => {
-    return user.value ? user.value.name.split(" ")[0] : "";
+const name = computed(() => {
+    return user.value ? user.value.data.name.split(" ")[0] : "";
 });
 
 const form = reactive({
@@ -323,18 +377,43 @@ const form = reactive({
 
 const submit = async () => {
     try {
-        const response = await axios.post("/masuk", form);
-        console.log("Login successful:", response.data);
+        isLoading.value = true;
+        const response = await axios.post("/api/auth/login", form);
+        localStorage.setItem("token", response.data.token);
         window.location.reload();
     } catch (error) {
         console.error("Registration failed:", error);
+        errors.value = error.response.data.errors;
+        isLoading.value = false;
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const logout = async () => {
+    try {
+        useStore.isLoading = true;
+        await axios.post("/api/logout", null, {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+        });
+        window.location.reload();
+        localStorage.removeItem("token");
+        useStore.isLoading = false;
+    } catch (error) {
+        console.error("Gagal logout:", error);
+    } finally {
+        useStore.isLoading = false;
     }
 };
 
 const searchProduct = useDebounce(async () => {
     try {
         isSearching.value = true;
-        const response = await axios.get(`/search?search=${searchItem.value}`);
+        const response = await axios.get(
+            `/api/search?search=${searchItem.value}`
+        );
         items.value = response.data;
         isSearching.value = false;
     } catch (error) {
@@ -343,7 +422,6 @@ const searchProduct = useDebounce(async () => {
 });
 
 const activateSearch = () => {
-    // Set a condition to activate searchProduct only when input is clicked
     if (searchItem.value) {
         searchProduct();
     }
@@ -362,20 +440,29 @@ watch(
     }
 );
 
-const logout = async () => {
-    try {
-        useStore.isLoading = true;
-        await axios.post("/logout");
-        window.location.reload();
-    } catch (error) {
-        console.error("Gagal logout:", error);
-    } finally {
-        useStore.isLoading = false;
-    }
-};
-
 let isMenu = ref(false);
 const toggle = () => {
     isMenu.value = !isMenu.value;
 };
+
+const getCart = async () => {
+    try {
+        const response = await axios.get("/api/user/cart", {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+        });
+        cart.value = response.data.data;
+    } catch (error) {
+        console.error("Error fetching cart:", error);
+    }
+};
+
+const getTotalCart = computed(() => {
+    if (cart.value == null) {
+        return 0;
+    } else {
+        return Object.keys(cart.value).length;
+    }
+});
 </script>

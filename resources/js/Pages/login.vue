@@ -1,9 +1,9 @@
 <template>
     <div class="bg-[#FFFFFF] h-[100vh] m-0 p-0 w-full">
         <div id="Header" class="flex justify-center mt-[20px] min-w-[960px]">
-            <a href="">
+            <Link :href="route('home')">
                 <img src="/images/icons/Toko.png" width="135" />
-            </a>
+            </Link>
         </div>
         <div class="relative min-w-[960px] mx-auto">
             <div class="my-[18px] h-[70%] pt-[50px] flex justify-center">
@@ -42,6 +42,14 @@
                                             class="flex items-center h-[40px] rounded-lg bg-[#FFFFFF] overflow-hidden border-[1px] border-solid w-full mt-1 outline-[#FF4646] p-3"
                                         />
                                     </div>
+                                    <div
+                                        class="text-[12px] text-bold py-1 text-red-500"
+                                        v-if="errors"
+                                        v-for="err in errors.email"
+                                        :key="err"
+                                    >
+                                        {{ err }}
+                                    </div>
                                     <label
                                         class="text-[12px] text-bold leading-4 mb-[4px] text-gray-500"
                                         >Password</label
@@ -53,24 +61,34 @@
                                             class="relative flex items-center h-[40px] rounded-lg bg-[#FFFFFF] overflow-hidden border-[1px] border-solid w-full mt-1 outline-[#FF4646] p-3"
                                         />
                                     </div>
-                                    <button
-                                        class="bg-[#FF4646] border-none rounded-lg text-[#FFFFFF] my-[16px] h-[40px] w-full hover:bg-[#D80000]"
+                                    <div
+                                        class="text-[12px] text-bold py-1 text-red-500"
+                                        v-if="errors"
+                                        v-for="err in errors.password"
+                                        :key="err"
                                     >
-                                        Masuk
+                                        {{ err }}
+                                    </div>
+                                    <div
+                                        v-if="errors"
+                                        v-for="err in errors.message"
+                                        class="text-[14px] text-extrabold py-1 text-red-500"
+                                    >
+                                        {{ err }}
+                                    </div>
+                                    <button
+                                        class="bg-[#FF4646] border-none rounded-lg text-[#FFFFFF] my-[30px] h-[40px] w-full hover:bg-[#D80000]"
+                                    >
+                                        <Icon
+                                            v-if="isLoading"
+                                            icon="eos-icons:loading"
+                                            class="mx-auto"
+                                        />
+                                        <div v-else>Login</div>
                                     </button>
                                 </div>
                             </form>
                         </div>
-                        <div class="border-b border-1 my-[24px]" />
-                        <button
-                            class="relative flex justify-center items-center bg-[#FFFFFF] border-[1px] border-solid font-bold rounded-lg px-[16px] w-full h-[40px] hover:bg-gray-100"
-                        >
-                            <img
-                                src="/images/icons/google-logo.png"
-                                class="w-full max-w-[15px]"
-                            />
-                            <div class="text-gray-500 left-2">Google</div>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -81,26 +99,36 @@
 
 <script setup>
 import { Link } from "@inertiajs/vue3";
-import { reactive } from "vue";
+import { reactive, onMounted, ref } from "vue";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import { router } from "@inertiajs/vue3";
+import { Icon } from "@iconify/vue";
 import Loading from "@/Components/Loading.vue";
 const useStore = useUserStore();
+const errors = ref(null);
+let isLoading = ref(false);
 
 const form = reactive({
     email: "",
     password: "",
 });
 
+onMounted(() => {
+    isLoading.value = false;
+});
+
 const submit = async () => {
     try {
+        isLoading.value = true;
         useStore.isLoading = true;
-        const response = await axios.post("/masuk", form);
-        console.log("Login successful:", response.data);
+        const response = await axios.post("/api/auth/login", form);
+        localStorage.setItem("token", response.data.token);
         router.visit("/");
     } catch (error) {
+        isLoading.value = false;
         console.error("Registration failed:", error);
+        errors.value = error.response.data.errors;
     } finally {
         useStore.isLoading = false;
     }

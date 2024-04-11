@@ -24,11 +24,11 @@ class AddressUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "name" => ["required",],
-            "address" => ["required"],
-            "zipcode" => ["required"],
-            "city" => ["required"],
-            "country" => ["required"],
+            "name" => ["nullable", "min:4", "max:35"],
+            "address" => ["nullable", "min:4", "max:35"],
+            "zipcode" => ["nullable", "min:4", "max:35"],
+            "city" => ["nullable", "min:4", "max:35"],
+            "country" => ["nullable", "min:4", "max:35"],
         ];
     }
 

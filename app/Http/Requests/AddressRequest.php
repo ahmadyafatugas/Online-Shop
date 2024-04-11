@@ -24,11 +24,11 @@ class AddressRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "name" => ["required"],
-            "address" => ["required"],
-            "zipcode" => ["required"],
-            "city" => ["required"],
-            "country" => ["required"],
+            "name" => ["required", "min:4", "max:35"],
+            "address" => ["required", "min:4", "max:35"],
+            "zipcode" => ["required", "min:4", "max:35"],
+            "city" => ["required", "min:4", "max:35"],
+            "country" => ["required", "min:4", "max:35"],
         ];
     }
 

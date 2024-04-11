@@ -22,13 +22,7 @@ class OrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "name" => ["required"],
-            "address" => ["required"],
-            "zipcode" => ["required"],
-            "city" => ["required"],
-            "country" => ["required"],
             "products" => ["required", "array"],
-            "products.*.id" => ["required", "integer"],
         ];
     }
 }

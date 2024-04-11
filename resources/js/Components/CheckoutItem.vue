@@ -1,6 +1,9 @@
 <template>
     <div class="flex justify-start my-2">
-        <img class="rounded-md md:w-[150px] w-[90px]" :src="product.url" />
+        <img
+            class="rounded-md md:w-[150px] w-[90px]"
+            :src="'/storage/' + product.url"
+        />
 
         <div class="overflow-hidden pl-2">
             <div class="flex items-center">
@@ -32,8 +35,7 @@ import { defineProps, toRefs } from "vue";
 import { useUserStore } from "@/stores/user";
 const userStore = useUserStore();
 
-const props = defineProps(["product"]);
-const { product } = toRefs(props);
+const { product } = defineProps(["product"]);
 
 const removeFromCart = () => {
     userStore.checkout.forEach((prod, index) => {
@@ -41,5 +43,10 @@ const removeFromCart = () => {
             userStore.checkout.splice(index, 1);
         }
     });
+};
+
+const getFileName = (fullUrl) => {
+    const parts = fullUrl.split("/");
+    return parts[parts.length - 1];
 };
 </script>
