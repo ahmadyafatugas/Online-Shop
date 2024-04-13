@@ -3,7 +3,7 @@
         <div class="mt-[70px]">
             <div class="flex justify-start bg-[#FFFFFF] rounded-lg">
                 <div class="m-7 pt-3 pb-[50px]">
-                    <h1 class="font-medium text-[18px]">Edit User</h1>
+                    <h1 class="font-medium text-[18px]">Edit Seller</h1>
                     <form
                         @submit.prevent="updateSeller()"
                         class="mt-[30px] ml-[90px]"

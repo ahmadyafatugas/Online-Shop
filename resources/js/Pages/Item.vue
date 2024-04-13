@@ -11,10 +11,10 @@
                     </div>
                     <div class="md:w-[60%] bg-white p-3 rounded-lg">
                         <div v-if="p">
-                            <p class="mb-2">
+                            <p class="mb-2 font-semibold text-[20px]">
                                 {{ p.title }}
                             </p>
-                            <p class="font-light text-[12px] mb-2">
+                            <p class="font-normal text-[15px] mb-2">
                                 {{ p.description }}
                             </p>
                         </div>

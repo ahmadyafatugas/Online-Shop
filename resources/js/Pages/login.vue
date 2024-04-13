@@ -1,6 +1,9 @@
 <template>
     <div class="bg-[#FFFFFF] h-[100vh] m-0 p-0 w-full">
-        <div id="Header" class="flex justify-center mt-[20px] min-w-[960px]">
+        <div
+            id="Header"
+            class="flex justify-center mt-[20px] min-w-[960px] mr-4"
+        >
             <Link :href="route('home')">
                 <img src="/images/icons/Toko.png" width="135" />
             </Link>
@@ -8,7 +11,7 @@
         <div class="relative min-w-[960px] mx-auto">
             <div class="my-[18px] h-[70%] pt-[50px] flex justify-center">
                 <div
-                    class="bg-white w-[400px] rounded-[3px] shadow-xl p-[40px]"
+                    class="bg-white w-[400px] rounded-[3px] shadow-2xl p-[40px]"
                 >
                     <div>
                         <div

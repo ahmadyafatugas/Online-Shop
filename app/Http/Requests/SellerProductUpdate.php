@@ -24,7 +24,7 @@ class SellerProductUpdate extends FormRequest
     {
         return [
             "title" => ['nullable', 'min:5', 'max:50'],
-            "description" => ['nullable', 'min:5', 'max:100'],
+            "description" => ['nullable', 'min:5'],
             "url" => ['nullable', 'image', 'max:2048'],
             'price' => ['nullable'],
             'stock' => ['nullable'],

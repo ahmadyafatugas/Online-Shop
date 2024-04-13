@@ -2,19 +2,19 @@
     <MainLayout>
         <div class="bg-[#ffffff] p-[1.25rem]">
             <div class="flex justify-center">
-                <div class="bg-[#dae2ec] w-[1000px] flex justify-center">
+                <div class="border border-black w-[1000px] flex justify-center">
                     <div class="m-5">
                         <img
                             v-if="image === null"
                             src="/images/product/default.png"
                             alt=""
-                            class="rounded-full w-[100px]"
+                            class="rounded-full w-[100px] ml-1"
                         />
                         <img
                             v-else
                             :src="'/storage/' + image"
                             alt=""
-                            class="rounded-full w-[100px]"
+                            class="rounded-full w-[100px] ml-1"
                         />
                         <div class="text-center mt-3">
                             <h1 class="text-base font-bold">
@@ -115,10 +115,16 @@ import { ref } from "vue";
 import axios from "axios";
 import ProductComponents from "@/Components/ProductComponents.vue";
 import { onMounted, defineProps, computed } from "vue";
-const props = defineProps({ id: Object, image: Object });
+const props = defineProps({
+    id: Object,
+    image: Object,
+    name: Object,
+    address: Object,
+});
 const image = props.image;
 const id = props.id;
-const seller = ref(null);
+const name = props.name;
+const address = props.address;
 const products = ref({});
 const productsCategory = ref([]);
 let sort_direction = ref("asc");
@@ -157,22 +163,8 @@ const getCategory = async () => {
     console.log(productsCategory.value);
 };
 
-const getSeller = async () => {
-    const response = await axios.get(`/api/seller/${id}`);
-    seller.value = response.data;
-};
-
-const name = computed(() => {
-    return seller.value ? seller.value.data.shop : "";
-});
-
-const address = computed(() => {
-    return seller.value ? seller.value.data.address : "";
-});
-
 onMounted(() => {
     getProduct();
     getCategory();
-    getSeller();
 });
 </script>

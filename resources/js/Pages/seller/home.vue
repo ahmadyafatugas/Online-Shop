@@ -1,7 +1,7 @@
 <template>
     <SellerLayout>
         <div class="m-[37px]">
-            <div class="text-[25px]">Welcome back, {{seller.name}}</div>
+            <div class="text-[25px]">Welcome back, {{ seller.shop }}</div>
             <div class="m-[80px] flex justify-center">
                 <Link :href="route('sellerProduct')">
                     <div
@@ -15,7 +15,7 @@
                                 class="mr-[80px]"
                             />
                             <p class="text-[40px] font-semibold leading-[58px]">
-                                5
+                                {{ seller.total }}
                             </p>
                         </div>
                     </div>
@@ -32,7 +32,7 @@
                                 class="mr-[80px]"
                             />
                             <p class="text-[40px] font-semibold leading-[58px]">
-                                5
+                                {{ seller.order }}
                             </p>
                         </div>
                     </div>
@@ -81,4 +81,5 @@ const viewSeller = async () => {
 
 onMounted(() => {
     viewSeller();
-});</script>
+});
+</script>

@@ -17,8 +17,8 @@
                     alt=""
                     class="rounded-full w-[100px]"
                 />
-                <p class="flex justify-center mt-3 font-semibold text-[15px]">
-                    {{ seller.name }}
+                <p class="text-center mt-3 font-semibold text-[15px]">
+                    {{ seller.shop }}
                 </p>
             </div>
         </div>

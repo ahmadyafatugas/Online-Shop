@@ -109,7 +109,6 @@ watchEffect(async () => {
         form.country = currentAddress.value.data.data.country;
         isUpdate.value = true;
     }
-    console.log(isUpdate.value);
 });
 
 const submit = async () => {

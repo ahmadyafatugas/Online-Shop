@@ -11,7 +11,7 @@
             </p>
         </div>
         <div class="w-[200px] mr-[30px]">
-            <p class="font-semibold">{{ product.price }}</p>
+            <p class="font-semibold">{{ priceComputed }}</p>
         </div>
         <div class="w-[300px]">
             <p class="font-semibold">{{ product.stock }}</p>
@@ -51,7 +51,7 @@
 
 <script setup>
 import { Icon } from "@iconify/vue";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { Link, router } from "@inertiajs/vue3";
 import axios from "axios";
 const { product } = defineProps(["product"]);
@@ -74,4 +74,10 @@ const setProduct = ref(false);
 const viewSetProduct = () => {
     setProduct.value = !setProduct.value;
 };
+
+const priceComputed = computed(() => {
+    return (product?.price ?? 0)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+});
 </script>

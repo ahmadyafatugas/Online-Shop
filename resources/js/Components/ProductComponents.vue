@@ -2,7 +2,7 @@
     <div>
         <div
             id="`ProductComponent`"
-            class="bg-white inline-block rounded hover:shadow-[0_0_10px_3px_rgba(0,0,0,0.15)] cursor-pointer"
+            class="bg-white inline-block rounded hover:shadow-[0_0_10px_3px_rgba(0,0,0,0.15)] cursor-pointer h-[300px]"
         >
             <div>
                 <Link :href="route('product', { id: product.id })">

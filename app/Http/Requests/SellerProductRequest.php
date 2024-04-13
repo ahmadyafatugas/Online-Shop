@@ -25,7 +25,7 @@ class SellerProductRequest extends FormRequest
     {
         return [
             "title" => ['required', 'min:5', 'max:50'],
-            "description" => ['required', 'min:5', 'max:100'],
+            "description" => ['required', 'min:5'],
             "url" => ['required', 'image', 'max:2048'],
             'price' => ['required'],
             'stock' => ['required'],

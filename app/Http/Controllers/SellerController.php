@@ -50,7 +50,8 @@ class SellerController extends Controller
     public function get()
     {
         $seller = Seller::where('user_id', Auth::id())->first();
-        return new SellerResource($seller);
+        $total = Products::where('seller_id', $seller->id)->count();
+        return (new SellerResource($seller));
     }
 
     public function update(SellerUpdateRequest $request)
@@ -178,7 +179,7 @@ class SellerController extends Controller
     public function shopSeller($shop)
     {
         $seller = Seller::where('shop', $shop)->first();
-        return Inertia::render('Shop', ['id' => $seller->id, 'name' => $seller->name, 'address' => $seller->address, 'image' => $seller->image]);
+        return Inertia::render('Shop', ['id' => $seller->id, 'name' => $seller->shop, 'address' => $seller->address, 'image' => $seller->image]);
     }
 
     public function getProductSellerFromUser(Request $request, $id)
